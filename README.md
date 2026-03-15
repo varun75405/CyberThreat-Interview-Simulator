@@ -1,70 +1,91 @@
-# Getting Started with Create React App
+# AI Cyber Threat Analyst Bot
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A cybersecurity training tool that simulates real attack scenarios and evaluates how well you respond. Pick an attack type, choose a target system, set the severity — the system generates a realistic incident log and then interviews you like a senior SOC analyst would.
 
-## Available Scripts
+Built as a cybersecurity parallel to the NLP AI Technical Interviewer project. Same architecture, different domain.
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## What it does
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+You select three things: what kind of attack happened, what system was targeted, and how severe it is. The backend pulls a matching incident log from the database (or generates one using the LLM if no match exists), detects the MITRE ATT&CK technique, and fires 3 questions at you. When you answer, the AI scores your response from 0–10 and tells you what you got right and what you missed.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+---
 
-### `npm test`
+## Project layout
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```
+cybersec-project/
+├── backend/
+│   ├── app.py            
+│   ├── database.sql      
+│   └── requirements.txt
+└── frontend/
+    └── src/
+        └── App.jsx       
+```
 
-### `npm run build`
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Getting it running
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+**Database first**
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Open MySQL and run the SQL file:
+```bash
+mysql -u root -p < backend/database.sql
+```
 
-### `npm run eject`
+**Backend**
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```bash
+cd backend
+pip install -r requirements.txt
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Create a `.env` file with your Groq API key:
+```
+GROQ_API_KEY=your_key_here
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Then start the server:
+```bash
+python app.py
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+It runs on `http://localhost:5000`.
 
-## Learn More
+**Frontend**
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```bash
+cd frontend
+npm install
+npm start
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Opens on `http://localhost:3000`.
 
-### Code Splitting
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## API routes
 
-### Analyzing the Bundle Size
+| Method | Route | What it does |
+|--------|-------|--------------|
+| GET | /api/attacks | Returns all attack types for the dropdown |
+| POST | /api/generate-incident | Builds an incident log from your selections |
+| GET | /api/questions/:id | Fetches 3 random questions for the attack category |
+| POST | /api/evaluate | Scores your answer against the reference answer |
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+---
 
-### Making a Progressive Web App
+## What's in the database
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+8 attack categories, each mapped to a real MITRE ATT&CK technique. 5 questions per category with reference answers. 10 pre-written incident logs with realistic timestamps, IPs, and indicators. No external dataset needed — everything is self-contained in `database.sql`.
 
-### Advanced Configuration
+The 8 attacks covered: Ransomware (T1486), Phishing (T1566), SQL Injection (T1190), Brute Force (T1110), DDoS (T1498), Privilege Escalation (T1068), Man in the Middle (T1557), Zero Day Exploit (T1203).
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+---
 
-### Deployment
+## Tech stack
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Python, Flask, LangChain, Groq API (Llama 3.3), MySQL, React.
